@@ -1,16 +1,10 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, MetaData
-from sqlalchemy.orm import relationship
-from init_db import *
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
+from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
-from sqlalchemy.orm import DeclarativeBase
-
-engine = create_engine('sqlite:///bdd_bank.db')
-Session = sessionmaker(engine)
-session = Session()
 
 
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
+
 
 
 class Account(Base):
@@ -19,23 +13,48 @@ class Account(Base):
     balance = Column("balance",Float)
     transactions = relationship("Transaction", back_populates="account")
 
-    def __init__(self, account_id, balance):
+    def __init__(self, account_id, balance, session):
         self.account_id = account_id
         self.balance = balance
+        self.session = session
     
-    def __repr__(self):
-        return f"<Account(account_id='{self.account_id}, balance='{self.balance}')"
-
-
-    def create_account(self):
-        new_account = Account(account_id=self.account_id, balance=self.balance)
-        session.add(new_account)
-        session.commit()
-
+    
+    
+    def create_transaction(self, amount, transaction_type):
+        transaction = Transaction(amount=amount, _type=transaction_type, timestamp=datetime.now(), account=self)
+        return transaction
+    
     def get_balance(self):
         print(f"Your account {self.account_id} has the balance {self.balance}")
+        return self.balance
 
 
+    
+    def withdraw(self, amount):
+       if self.balance >= amount:
+            self.balance -= amount
+            new_transaction = self.create_transaction(amount=amount, transaction_type="withdraw")
+            self.session.add(new_transaction)
+            return self.balance
+        
+
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+    def transfer(self,other_account, amount):
+        if self.balance > 0:
+            self.withdraw(amount)
+            new_transaction = self.create_transaction(amount=amount, transaction_type="transfer_from")
+            self.session.add(new_transaction)
+            other_account.deposit(amount)
+            second_transaction = self.create_transaction(amount=amount, transaction_type="transfer_to")
+            self.session.add(second_transaction)
+            return True
+        else:
+            return False 
+        
 
 
 class Transaction(Base):
@@ -48,30 +67,8 @@ class Transaction(Base):
     account = relationship("Account", back_populates="transactions")
     
 
-    def __init__(self,transaction_id, _type, amount):
-        self.transaction_id = transaction_id
-        self.amount = amount
-        self.type = _type
-
-    def deposit(self):
-        pass
-
-
-    def withdraw(self):
-        pass
-
-
-    def transfer(self):
-        pass
+   
 
 
 
-Base.metadata.drop_all(engine)
-Base.metadata.create_all(engine)
 
-client1 = Account(account_id=1,balance=100)
-client1.create_account()
-client1.get_balance()
-client2 = Account(account_id=2,balance=50)
-client2.create_account()
-client2.get_balance()
