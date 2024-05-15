@@ -5,7 +5,9 @@ from datetime import datetime
 from sqlalchemy.orm import DeclarativeBase
 
 engine = create_engine('sqlite:///bdd_bank.db')
-session = sessionmaker(engine)
+Session = sessionmaker(engine)
+session = Session()
+
 
 class Base(DeclarativeBase):
     pass
@@ -28,9 +30,10 @@ class Account(Base):
     def create_account(self):
         new_account = Account(account_id=self.account_id, balance=self.balance)
         session.add(new_account)
+        session.commit()
 
     def get_balance(self):
-        return self.balance
+        print(f"Your account {self.account_id} has the balance {self.balance}")
 
 
 
@@ -63,4 +66,12 @@ class Transaction(Base):
 
 
 
+Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
+
+client1 = Account(account_id=1,balance=100)
+client1.create_account()
+client1.get_balance()
+client2 = Account(account_id=2,balance=50)
+client2.create_account()
+client2.get_balance()
