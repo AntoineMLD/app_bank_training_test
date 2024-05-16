@@ -42,7 +42,8 @@ def test_withdraw_normal(account_factory):
 
 def test_withdraw_insufficient_funds(account_factory):
     new_account = account_factory(account_id=9, balance=200)
-    new_account.withdraw(300)
+    with pytest.raises(ValueError):
+        new_account.withdraw(300)
     last_transaction = new_account.transactions
     assert new_account.balance == 200
     assert last_transaction == []
@@ -90,6 +91,22 @@ def test_get_balance_after_deposit(account_factory):
 
 
 def test_get_balance_after_withdrawal(account_factory):
-    # Vérifier le solde après une tentative de retrait échouée due à un solde insuffisant
-    
+    new_account =account_factory(account_id=16, balance=20)
+    new_account.withdraw(5)
+    assert new_account.balance == 15
 
+
+def test_get_balance_after_failed_withdrawal(account_factory):
+    new_account =account_factory(account_id=17, balance=15)
+    with pytest.raises(ValueError):
+        new_account.withdraw(20)
+    assert new_account.get_balance() == 15
+
+
+def test_get_balance_after_transfer(account_factory):
+    new_account =account_factory(account_id=18, balance=100)
+    new_account2 =account_factory(account_id=19, balance=100)
+    new_account.transfer(new_account2,50)
+    assert new_account.get_balance() == 50
+    assert new_account2.get_balance() == 150
+    

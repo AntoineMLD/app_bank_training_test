@@ -27,6 +27,8 @@ class Account(Base):
     def withdraw(self, amount):
         if amount < 0 :
             raise ValueError("Amount cant be negative")
+        elif self.balance < amount :
+            raise ValueError("No credits")
         elif self.balance >= amount:
             self.balance -= amount
             new_transaction = self.create_transaction(amount=amount, transaction_type="withdraw")
@@ -34,7 +36,7 @@ class Account(Base):
             self.session.commit()
             return True
         else:
-            return False
+            return False 
             
 
     def deposit(self, amount):
