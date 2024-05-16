@@ -21,11 +21,13 @@ class Account(Base):
         return transaction
 
     def get_balance(self):
-        print(f"Your account {self.account_id} has the balance {self.balance}")
+        
         return self.balance
 
     def withdraw(self, amount):
-        if self.balance >= amount:
+        if amount < 0 :
+            raise ValueError("Amount cant be negative")
+        elif self.balance >= amount:
             self.balance -= amount
             new_transaction = self.create_transaction(amount=amount, transaction_type="withdraw")
             self.session.add(new_transaction)
@@ -36,13 +38,21 @@ class Account(Base):
             
 
     def deposit(self, amount):
-        self.balance += amount
-        new_transaction = self.create_transaction(amount=amount, transaction_type="deposit")
-        self.session.add(new_transaction)
-        self.session.commit()
+        if amount < 0 :
+            raise ValueError("Amount cant be negative")
+        if amount > 0:
+            self.balance += amount
+            new_transaction = self.create_transaction(amount=amount, transaction_type="deposit")
+            self.session.add(new_transaction)
+            self.session.commit()
+            return True
+        else:
+            return False
         
 
     def transfer(self, other_account, amount):
+        if amount <= 0:
+            raise ValueError("Amount cant negative or zero")
         if self.balance > 0:
             self.withdraw(amount)
             new_transaction = self.create_transaction(amount=amount, transaction_type="transfer_from")

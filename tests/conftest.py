@@ -14,11 +14,9 @@ def session():
 def account_factory(session):
     def make_account(account_id, balance):
         account = Account(account_id=account_id, balance=balance, session=session)
-        
         session.add(account)
         session.commit()
-
-        
+       
         return account
     return make_account
         
