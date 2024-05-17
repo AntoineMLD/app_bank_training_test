@@ -4,6 +4,7 @@ from mock_alchemy.mocking import UnifiedAlchemyMagicMock
 from source.init_db import setup_database as setup_database
 
 
+
 @pytest.fixture
 def session():
     session = UnifiedAlchemyMagicMock()
