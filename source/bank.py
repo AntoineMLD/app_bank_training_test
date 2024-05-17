@@ -40,16 +40,13 @@ class Account(Base):
             
 
     def deposit(self, amount):
-        if amount < 0 :
-            raise ValueError("Amount cant be negative")
-        if amount > 0:
-            self.balance += amount
-            new_transaction = self.create_transaction(amount=amount, transaction_type="deposit")
-            self.session.add(new_transaction)
-            self.session.commit()
-            return True
-        else:
-            return False
+        if amount <= 0:  # Change the condition to include zero
+            raise ValueError("Amount must be greater than zero")
+        self.balance += amount
+        new_transaction = self.create_transaction(amount=amount, transaction_type="deposit")
+        self.session.add(new_transaction)
+        self.session.commit()
+        return True
         
 
     def transfer(self, other_account, amount):

@@ -15,7 +15,7 @@ def test_new_account(account_factory):
 def test_deposit_negative_amount(account_factory):
     new_account = account_factory(account_id=6, balance=0)
     with pytest.raises(ValueError):
-        new_account.withdraw(-100)
+        new_account.deposit(-100)
     last_transaction = new_account.transactions
     assert new_account.balance == 0
     assert last_transaction == []
@@ -24,7 +24,8 @@ def test_deposit_negative_amount(account_factory):
 
 def test_deposit_zero_amount(account_factory):
     new_account = account_factory(account_id=7, balance=0)
-    new_account.deposit(0)
+    with pytest.raises(ValueError):
+        new_account.deposit(0)
     last_transaction = new_account.transactions
     assert new_account.balance == 0
     assert last_transaction == []
