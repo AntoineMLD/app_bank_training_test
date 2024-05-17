@@ -1,7 +1,7 @@
 import pytest 
 from datetime import datetime
 
-
+@pytest.mark.database
 def test_new_account(account_factory):
     new_account = account_factory(account_id=5, balance=0)
     new_account.deposit(2000)
@@ -12,7 +12,7 @@ def test_new_account(account_factory):
     assert new_account.session.commit.call_count == 2 # two because, first in account_factory and the deposit
 
 
-
+@pytest.mark.database
 def test_deposit_negative_amount(account_factory):
     new_account = account_factory(account_id=6, balance=0)
     with pytest.raises(ValueError):
@@ -23,7 +23,7 @@ def test_deposit_negative_amount(account_factory):
     assert new_account.session.commit.call_count == 1 # one commit because has in account_factory
 
 
-
+@pytest.mark.database
 def test_deposit_zero_amount(account_factory):
     new_account = account_factory(account_id=7, balance=0)
     with pytest.raises(ValueError):
@@ -34,7 +34,7 @@ def test_deposit_zero_amount(account_factory):
     assert new_account.session.commit.call_count == 1 # one commit because has in account_factory
 
 
-
+@pytest.mark.database
 def test_withdraw_normal(account_factory):
     new_account = account_factory(account_id=8, balance=200)
     new_account.withdraw(100)
@@ -44,7 +44,7 @@ def test_withdraw_normal(account_factory):
     assert new_account.session.commit.call_count == 2 # two because, first in account_factory and the withdraw
 
 
-
+@pytest.mark.database
 def test_withdraw_insufficient_funds(account_factory):
     new_account = account_factory(account_id=9, balance=200)
     with pytest.raises(ValueError):
@@ -55,7 +55,7 @@ def test_withdraw_insufficient_funds(account_factory):
     assert new_account.session.commit.call_count == 1 # one commit because has in account_factory
 
 
-
+@pytest.mark.database
 def test_withdraw_negative_amount(account_factory):
     new_account = account_factory(account_id=10, balance=100)
     with pytest.raises(ValueError):
@@ -65,7 +65,7 @@ def test_withdraw_negative_amount(account_factory):
     assert new_account.session.commit.call_count == 1 #one commit beacuse has in account_factory
 
 
-
+@pytest.mark.database
 def test_transfer_zero_amount(account_factory):
     new_account = account_factory(account_id=11, balance=100)
     other_account = account_factory(account_id=12, balance=100)
@@ -79,7 +79,7 @@ def test_transfer_zero_amount(account_factory):
     assert other_account.session.commit.call_count == 2 #one commit beacuse has in account_factory and other_account
 
 
-
+@pytest.mark.database
 def test_get_balance_initial(account_factory):
     new_account = account_factory(account_id=13, balance=100)
     new_account2 = account_factory(account_id=14, balance=0)
@@ -91,7 +91,7 @@ def test_get_balance_initial(account_factory):
     assert new_account2.transactions == []
 
 
-
+@pytest.mark.database
 def test_get_balance_after_deposit(account_factory):
     new_account = account_factory(account_id=15, balance=0)
     new_account.deposit(100)
@@ -99,14 +99,14 @@ def test_get_balance_after_deposit(account_factory):
     
 
 
-
+@pytest.mark.database
 def test_get_balance_after_withdrawal(account_factory):
     new_account =account_factory(account_id=16, balance=20)
     new_account.withdraw(5)
     assert new_account.balance == 15
 
 
-
+@pytest.mark.database
 def test_get_balance_after_failed_withdrawal(account_factory):
     new_account =account_factory(account_id=17, balance=15)
     with pytest.raises(ValueError):
@@ -114,7 +114,7 @@ def test_get_balance_after_failed_withdrawal(account_factory):
     assert new_account.get_balance() == 15
 
 
-
+@pytest.mark.database
 def test_get_balance_after_transfer(account_factory):
     new_account =account_factory(account_id=18, balance=100)
     new_account2 =account_factory(account_id=19, balance=100)
