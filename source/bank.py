@@ -52,6 +52,8 @@ class Account(Base):
     def transfer(self, other_account, amount):
         if amount <= 0:
             raise ValueError("Amount cant negative or zero")
+
+        
         if self.balance > 0:
             self.withdraw(amount)
             new_transaction = self.create_transaction(amount=amount, transaction_type="transfer_from")
