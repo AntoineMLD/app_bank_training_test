@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
+import time
+import threading
 
 Base = declarative_base()
 
@@ -15,6 +17,7 @@ class Account(Base):
         self.account_id = account_id
         self.balance = balance
         self.session = session
+        
 
     def create_transaction(self, amount, transaction_type):
         transaction = Transaction(amount=amount, _type=transaction_type, timestamp=datetime.now(), account=self)
@@ -25,47 +28,34 @@ class Account(Base):
         return self.balance
 
     def withdraw(self, amount):
-        if amount < 0 :
-            raise ValueError("Amount cant be negative")
-        elif self.balance < amount :
+        
+        if amount < 0:
+            raise ValueError("Amount cannot be negative")
+        if self.balance < amount:
             raise ValueError("No credits")
-        elif self.balance >= amount:
-            self.balance -= amount
-            new_transaction = self.create_transaction(amount=amount, transaction_type="withdraw")
-            self.session.add(new_transaction)
-            self.session.commit()
-            return True
-        else:
-            return False 
-            
+        self.balance -= amount
+        new_transaction = self.create_transaction(amount=amount, transaction_type="withdraw")
+        self.session.add(new_transaction)
+        self.session.commit()
+        return True
 
     def deposit(self, amount):
-        if amount <= 0:  # Change the condition to include zero
+        
+        if amount <= 0:
             raise ValueError("Amount must be greater than zero")
         self.balance += amount
         new_transaction = self.create_transaction(amount=amount, transaction_type="deposit")
         self.session.add(new_transaction)
         self.session.commit()
         return True
-        
+            
 
-    def transfer(self, other_account, amount):
-        if amount <= 0:
-            raise ValueError("Amount cant negative or zero")
-
-        
-        if self.balance > 0:
-            self.withdraw(amount)
-            new_transaction = self.create_transaction(amount=amount, transaction_type="transfer_from")
-            self.session.add(new_transaction)
-            other_account.deposit(amount)
-            self.session.commit()
-            second_transaction = self.create_transaction(amount=amount, transaction_type="transfer_to")
-            self.session.add(second_transaction)
-            self.session.commit()
-            return True
-        else:
+    def transfer(self, target_account, amount):
+        if self.balance < amount:
             return False
+        self.withdraw(amount)
+        target_account.deposit(amount)
+        return True
 
 
 class Transaction(Base):

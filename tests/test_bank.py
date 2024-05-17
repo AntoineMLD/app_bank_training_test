@@ -1,5 +1,6 @@
 import pytest 
 from datetime import datetime
+from source.bank import Transaction
 
 @pytest.mark.database
 def test_new_account(account_factory):
@@ -66,25 +67,27 @@ def test_withdraw_negative_amount(account_factory):
 
 
 @pytest.mark.database
-def test_transfer_zero_amount(account_factory):
+def test_transfer_normal(account_factory, session):
     new_account = account_factory(account_id=11, balance=100)
     other_account = account_factory(account_id=12, balance=100)
-    with pytest.raises(ValueError):
-        new_account.transfer(other_account,0)
-    assert new_account.balance == 100
-    assert other_account.balance == 100
-    assert new_account.transactions == []
-    assert other_account.transactions == []
-    assert new_account.session.commit.call_count == 2 #one commit beacuse has in account_factory and other_account
-    assert other_account.session.commit.call_count == 2 #one commit beacuse has in account_factory and other_account
-
-
+    new_account.transfer(other_account,50)
+        
+    db_new_account_last_transaction = session.query(Transaction).all()[0]
+    db_other_account_last_transaction = session.query(Transaction).all()[1]
+    assert new_account.balance == 50
+    assert other_account.balance == 150
+    assert db_new_account_last_transaction._type == "withdraw"
+    assert db_other_account_last_transaction._type == "deposit"
+    assert new_account.session.commit.call_count == 4 
+    assert other_account.session.commit.call_count == 4
+    
+  
+     
+    
 @pytest.mark.database
 def test_get_balance_initial(account_factory):
     new_account = account_factory(account_id=13, balance=100)
     new_account2 = account_factory(account_id=14, balance=0)
-    last_transaction = new_account.transactions
-    last_transaction2 = new_account2.transactions
     assert new_account.get_balance() == 100
     assert new_account2.get_balance() == 0
     assert new_account.transactions == []
@@ -147,6 +150,9 @@ def test_withdraw(account_factory, initial_balance, withdraw_amount, expected_ba
     account.withdraw(withdraw_amount)
     assert account.balance == expected_balance
     
+    
+
+
     
 
 @pytest.mark.parametrize("initial_balance, transfer_amount, expected_balance", [

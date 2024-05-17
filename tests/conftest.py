@@ -1,15 +1,20 @@
 import pytest
-from source.bank import Account
+from source.bank import Account, Base
 from mock_alchemy.mocking import UnifiedAlchemyMagicMock
-from source.init_db import setup_database as setup_database
+from sqlalchemy import create_engine
 
 
 
-@pytest.fixture
+
+
+@pytest.fixture(scope="function")
 def session():
+    engine = create_engine('sqlite:///:memory:')
+    # Créez une mock session utilisant UnifiedAlchemyMagicMock
     session = UnifiedAlchemyMagicMock()
-    Session = session()
-    return Session
+    Base.metadata.create_all(engine)
+    yield session
+    session.rollback()
 
 @pytest.fixture
 def account_factory(session):
